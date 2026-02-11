@@ -1,7 +1,8 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas';
-import { Download, Share2, Home, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Download, Share2, Home, Loader2 } from 'lucide-react';
 import { GameConfig, GameStats } from '../types';
 import { calculateGrade, formatTime } from '../utils/mathGame';
 import { saveHistory } from '../utils/storage';
@@ -27,7 +28,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, stats, onRes
   const totalTimeSeconds = Math.floor((stats.endTime - stats.startTime) / 1000);
   const formattedTime = formatTime(totalTimeSeconds);
 
-  // Auto-save history on mount
   useEffect(() => {
     if (!hasSavedRef.current) {
         saveHistory({
@@ -44,7 +44,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, stats, onRes
     }
   }, [config, stats, grade, formattedTime]);
 
-  // Confetti effect
   useEffect(() => {
     if (grade === 'A' || grade === 'B') {
       const duration = 3000;
@@ -108,9 +107,10 @@ Teruslah berlatih dan tingkatkan kemampuanmu!
     if (!certificateRef.current) return null;
     try {
         const canvas = await html2canvas(certificateRef.current, {
-            scale: 2, // Higher quality
+            scale: 2,
             backgroundColor: '#ffffff',
-            useCORS: true
+            useCORS: true,
+            logging: false
         });
         return new Promise((resolve) => {
             canvas.toBlob((blob) => resolve(blob), 'image/png');
@@ -128,8 +128,7 @@ Teruslah berlatih dan tingkatkan kemampuanmu!
     if (blob) {
         const file = new File([blob], 'sertifikat-matematika.png', { type: 'image/png' });
         
-        // Try Web Share API Level 2 (Files)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
                 await navigator.share({
                     files: [file],
@@ -140,7 +139,6 @@ Teruslah berlatih dan tingkatkan kemampuanmu!
                 console.log("Sharing failed or cancelled", error);
             }
         } else {
-            // Fallback: Download image
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -149,7 +147,7 @@ Teruslah berlatih dan tingkatkan kemampuanmu!
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            alert("Fitur 'Share langsung' tidak didukung browser ini. Gambar telah diunduh, silakan bagikan secara manual.");
+            alert("Berbagi langsung tidak didukung. Sertifikat telah diunduh ke perangkat Anda.");
         }
     }
     setIsGenerating(false);
@@ -157,13 +155,10 @@ Teruslah berlatih dan tingkatkan kemampuanmu!
 
   return (
     <div className="w-full max-w-2xl animate-fade-in flex flex-col gap-6">
-        
-        {/* Certificate Card - This part gets screenshotted */}
         <div 
             ref={certificateRef}
             className="bg-white p-8 md:p-12 rounded-2xl shadow-2xl border-4 border-indigo-600 relative overflow-hidden"
         >
-            {/* Background Decorative Circles */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full z-0 opacity-50"></div>
             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-50 rounded-full z-0 opacity-50"></div>
 
@@ -204,7 +199,6 @@ Teruslah berlatih dan tingkatkan kemampuanmu!
             </div>
         </div>
 
-        {/* Action Buttons - Outside the screenshot area */}
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
             <h3 className="text-center font-bold text-slate-700 mb-4">Bagikan Hasil Anda</h3>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -225,7 +219,7 @@ Teruslah berlatih dan tingkatkan kemampuanmu!
                         </>
                     ) : (
                         <>
-                            <Share2 className="w-5 h-5" /> Bagikan Gambar (WA/IG)
+                            <Share2 className="w-5 h-5" /> Bagikan Gambar
                         </>
                     )}
                 </button>
